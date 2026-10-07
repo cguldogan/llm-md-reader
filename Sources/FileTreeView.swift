@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FileTreeView: View {
-    @EnvironmentObject private var model: AppModel
+    @Environment(AppModel.self) private var model
     @State private var selection: URL?
 
     var body: some View {
@@ -24,17 +24,9 @@ struct FileTreeView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            Button {
-                if let folder = model.folderURL {
-                    let parent = folder.deletingLastPathComponent()
-                    if parent.path != folder.path {
-                        model.open(at: parent)
-                    }
-                }
-            } label: {
-                Image(systemName: "chevron.up")
-            }
-            .buttonStyle(.plain)
+            Button("Enclosing Folder", systemImage: "chevron.up", action: goUp)
+                .labelStyle(.iconOnly)
+                .buttonStyle(.plain)
             .disabled(model.folderURL.map { $0.path == "/" } ?? true)
             .help("Enclosing Folder")
 
@@ -45,12 +37,9 @@ struct FileTreeView: View {
 
             Spacer()
 
-            Button {
-                model.refreshFolder()
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .buttonStyle(.plain)
+            Button("Refresh", systemImage: "arrow.clockwise", action: model.refreshFolder)
+                .labelStyle(.iconOnly)
+                .buttonStyle(.plain)
             .help("Refresh")
         }
         .padding(.horizontal, 12)
@@ -75,6 +64,14 @@ struct FileTreeView: View {
         }
         .onChange(of: model.fileURL) { _, url in
             selection = url
+        }
+    }
+
+    private func goUp() {
+        guard let folder = model.folderURL else { return }
+        let parent = folder.deletingLastPathComponent()
+        if parent.path != folder.path {
+            model.open(at: parent)
         }
     }
 

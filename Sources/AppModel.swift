@@ -1,4 +1,4 @@
-import Combine
+import Observation
 import SwiftUI
 
 enum AppearancePreference: String, CaseIterable, Identifiable, Hashable {
@@ -46,27 +46,28 @@ private enum ScanRules {
 }
 
 @MainActor
-final class AppModel: ObservableObject {
+@Observable
+final class AppModel {
     static let shared = AppModel()
 
     // Document
-    @Published private(set) var fileURL: URL?
-    @Published private(set) var markdownText = ""
-    @Published private(set) var documentName = ""
-    @Published private(set) var loadError: String?
-    @Published private(set) var sections: [DocumentSection] = []
+    private(set) var fileURL: URL?
+    private(set) var markdownText = ""
+    private(set) var documentName = ""
+    private(set) var loadError: String?
+    private(set) var sections: [DocumentSection] = []
 
     // Sidebar
-    @Published private(set) var folderURL: URL?
-    @Published private(set) var sidebarItems: [FileNode] = []
+    private(set) var folderURL: URL?
+    private(set) var sidebarItems: [FileNode] = []
 
     // Viewer state
-    @Published var showsSource = false
-    @Published var sidebarVisibility: NavigationSplitViewVisibility = .all
-    @Published var contentFontSize: Double {
+    var showsSource = false
+    var sidebarVisibility: NavigationSplitViewVisibility = .all
+    var contentFontSize: Double {
         didSet { UserDefaults.standard.set(contentFontSize, forKey: Self.fontSizeKey) }
     }
-    @Published var appearance: AppearancePreference {
+    var appearance: AppearancePreference {
         didSet { UserDefaults.standard.set(appearance.rawValue, forKey: Self.appearanceKey) }
     }
 
@@ -105,6 +106,9 @@ final class AppModel: ObservableObject {
     /// Entry point for every way a path enters the app: open panel, drag and drop,
     /// Finder/dock activation, recents.
     func open(at url: URL) {
+        // Deliberately never balanced with a stop: the file watcher re-reads
+        // this path for as long as the document stays open. A stop would mean
+        // re-establishing access on every watcher event.
         _ = url.startAccessingSecurityScopedResource()
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
@@ -133,6 +137,10 @@ final class AppModel: ObservableObject {
         } catch {
             loadError = "Could not read “\(url.lastPathComponent)”: \(error.localizedDescription)"
         }
+    }
+
+    func dismissError() {
+        loadError = nil
     }
 
     func bumpFontSize(_ delta: Double) {

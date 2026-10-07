@@ -2,7 +2,7 @@ import MarkdownUI
 import SwiftUI
 
 struct ReaderView: View {
-    @EnvironmentObject private var model: AppModel
+    @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var colorScheme
     @State private var showsTableOfContents = false
 
@@ -22,7 +22,9 @@ struct ReaderView: View {
 
     @ViewBuilder
     private var content: some View {
-        if model.fileURL == nil {
+        if let error = model.loadError {
+            errorState(error)
+        } else if model.fileURL == nil {
             emptyState
         } else if model.showsSource {
             sourceView
@@ -36,23 +38,18 @@ struct ReaderView: View {
     private var renderedView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(model.sections, id: \.id) { section in
-                    chunk(section)
-                        .id(section.id)
+                ForEach(model.sections) { section in
+                    MarkdownSectionView(
+                        section: section,
+                        baseURL: model.folderURL,
+                        bodySize: model.contentFontSize,
+                        colorScheme: colorScheme
+                    )
+                    .id(section.id)
                 }
                 Color.clear.frame(height: 48)
             }
         }
-    }
-
-    private func chunk(_ section: DocumentSection) -> some View {
-        Markdown(section.markdown, baseURL: model.folderURL, imageBaseURL: model.folderURL)
-            .markdownTheme(ReaderTheme.markdown(bodySize: model.contentFontSize))
-            .markdownCodeSyntaxHighlighter(SplashCodeSyntaxHighlighter(colorScheme: colorScheme))
-            .frame(maxWidth: 720, alignment: .leading)
-            .padding(.horizontal, 24)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .textSelection(.enabled)
     }
 
     // MARK: - Source
@@ -60,7 +57,7 @@ struct ReaderView: View {
     private var sourceView: some View {
         ScrollView {
             Text(model.markdownText)
-                .font(.system(size: 12, design: .monospaced))
+                .font(.system(.footnote, design: .monospaced))
                 .lineSpacing(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
@@ -80,25 +77,38 @@ struct ReaderView: View {
         }
     }
 
+    private func errorState(_ message: String) -> some View {
+        ContentUnavailableView {
+            Label("Couldn't Open", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text(message)
+        } actions: {
+            if model.fileURL != nil {
+                Button("Back to Document") { model.dismissError() }
+            }
+            Button("Choose…") {
+                model.dismissError()
+                model.openPanel()
+            }
+        }
+    }
+
     // MARK: - Toolbar
 
     @ToolbarContentBuilder
     private func toolbar(_ proxy: ScrollViewProxy) -> some ToolbarContent {
+        @Bindable var model = model
         ToolbarItem(placement: .navigation) {
-            Button {
-                model.toggleSidebar()
-            } label: {
-                Image(systemName: "sidebar.left")
-            }
-            .help("Toggle Sidebar")
+            Button("Toggle Sidebar", systemImage: "sidebar.left", action: model.toggleSidebar)
+                .labelStyle(.iconOnly)
+                .help("Toggle Sidebar")
         }
 
         ToolbarItemGroup(placement: .primaryAction) {
-            Button {
+            Button("Table of Contents", systemImage: "list.bullet.indent") {
                 showsTableOfContents = true
-            } label: {
-                Image(systemName: "list.bullet.indent")
             }
+            .labelStyle(.iconOnly)
             .disabled(model.showsSource || !model.sections.contains { $0.level != nil })
             .help("Table of Contents")
             .popover(isPresented: $showsTableOfContents) {
@@ -117,16 +127,15 @@ struct ReaderView: View {
             .frame(width: 150)
             .help("Toggle Preview and Source")
 
-            Menu {
+            Menu("Text Size", systemImage: "textformat.size") {
                 Button("Increase") { model.bumpFontSize(1) }
                 Button("Decrease") { model.bumpFontSize(-1) }
                 Divider()
                 ForEach([12, 14, 16, 18, 21, 24, 28], id: \.self) { size in
                     Button("\(size) pt") { model.contentFontSize = Double(size) }
                 }
-            } label: {
-                Image(systemName: "textformat.size")
             }
+            .labelStyle(.iconOnly)
             .help("Text Size")
 
             Picker("Appearance", selection: $model.appearance) {
@@ -150,6 +159,23 @@ struct ReaderView: View {
     }
 }
 
+private struct MarkdownSectionView: View {
+    let section: DocumentSection
+    let baseURL: URL?
+    let bodySize: Double
+    let colorScheme: ColorScheme
+
+    var body: some View {
+        Markdown(section.markdown, baseURL: baseURL, imageBaseURL: baseURL)
+            .markdownTheme(ReaderTheme.markdown(bodySize: bodySize))
+            .markdownCodeSyntaxHighlighter(SplashCodeSyntaxHighlighter(colorScheme: colorScheme))
+            .frame(maxWidth: 720, alignment: .leading)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .textSelection(.enabled)
+    }
+}
+
 private struct TOCView: View {
     let entries: [TableOfContentsEntry]
     let onSelect: (String) -> Void
@@ -170,7 +196,7 @@ private struct TOCView: View {
                                 dismiss()
                             } label: {
                                 Text(entry.title)
-                                    .font(.system(size: 13))
+                                    .font(.body)
                                     .lineLimit(1)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.leading, CGFloat(entry.level - 1) * 14)
@@ -179,7 +205,7 @@ private struct TOCView: View {
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(.primary)
                         }
                     }
                     .padding(.vertical, 6)

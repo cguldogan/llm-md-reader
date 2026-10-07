@@ -4,7 +4,7 @@ import Foundation
 /// heading ("preamble") or a heading plus everything up to the next heading.
 /// Splitting at headings is what powers both the table of contents and anchor
 /// scrolling, without relying on renderer-internal anchor ids.
-struct DocumentSection: Equatable {
+struct DocumentSection: Equatable, Identifiable {
     let id: String
     let level: Int?
     let title: String?
@@ -21,7 +21,7 @@ enum DocumentSplitter {
     /// Splits markdown into sections at ATX headings (`#`–`######`), ignoring
     /// heading-like lines inside fenced code blocks (``` or ~~~).
     static func split(_ markdown: String) -> [DocumentSection] {
-        let normalized = markdown.replacingOccurrences(of: "\r\n", with: "\n")
+        let normalized = markdown.replacing("\r\n", with: "\n")
         let lines = normalized.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
 
         var sections: [DocumentSection] = []

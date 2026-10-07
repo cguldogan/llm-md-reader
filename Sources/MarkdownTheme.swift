@@ -49,11 +49,11 @@ private struct TextOutputFormat: OutputFormat {
 
         mutating func addToken(_ token: String, ofType type: TokenType) {
             let color = theme.tokenColors[type] ?? theme.plainTextColor
-            parts.append(Text(token).foregroundColor(Color(color)))
+            parts.append(Text(token).foregroundStyle(Color(color)))
         }
 
         mutating func addPlainText(_ text: String) {
-            parts.append(Text(text).foregroundColor(Color(theme.plainTextColor)))
+            parts.append(Text(text).foregroundStyle(Color(theme.plainTextColor)))
         }
 
         mutating func addWhitespace(_ text: String) {

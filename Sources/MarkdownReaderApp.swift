@@ -9,7 +9,7 @@ struct MarkdownReaderApp: App {
     var body: some Scene {
         WindowGroup("Markdown Reader") {
             ContentView()
-                .environmentObject(model)
+                .environment(model)
                 .onOpenURL { url in
                     Task { @MainActor in
                         AppModel.shared.open(at: url)
@@ -94,7 +94,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 : [directObject]
 
         for item in items {
-            let coerced = (try? item.coerce(toDescriptorType: 0x6675726C)) ?? item // 'furl'
+            let coerced = item.coerce(toDescriptorType: 0x6675726C) ?? item // 'furl'
             guard let url = coerced.fileURLValue else { continue }
             Task { @MainActor in
                 AppModel.shared.open(at: url)
