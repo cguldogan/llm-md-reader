@@ -43,6 +43,10 @@ private struct TextOutputFormat: OutputFormat {
         let theme: Splash.Theme
         private var parts: [Text] = []
 
+        init(theme: Splash.Theme) {
+            self.theme = theme
+        }
+
         mutating func addToken(_ token: String, ofType type: TokenType) {
             let color = theme.tokenColors[type] ?? theme.plainTextColor
             parts.append(Text(token).foregroundColor(Color(color)))
