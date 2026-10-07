@@ -1,0 +1,92 @@
+name: Release build
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, package & publish
+    runs-on: macos-15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Build app (Release, universal)
+        run: |
+          xcodebuild -project MarkdownReader.xcodeproj \
+            -scheme MarkdownReader \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath .build \
+            ONLY_ACTIVE_ARCH=NO \
+            MARKETING_VERSION="${VERSION}" \
+            build
+
+      - name: Verify and package
+        run: |
+          mkdir -p dist
+          cp -R .build/Build/Products/Release/MarkdownReader.app dist/
+
+          echo "Signature:"
+          codesign --verify --strict --verbose=2 dist/MarkdownReader.app
+          echo "Architectures: $(lipo -archs dist/MarkdownReader.app/Contents/MacOS/MarkdownReader)"
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            dist/MarkdownReader.app "dist/MarkdownReader-${VERSION}.zip"
+
+          mkdir dmg-stage
+          cp -R dist/MarkdownReader.app dmg-stage/
+          ln -s /Applications dmg-stage/Applications
+          hdiutil create -volname "MarkdownReader ${VERSION}" -srcfolder dmg-stage \
+            -format UDZO -ov "dist/MarkdownReader-${VERSION}.dmg"
+          rm -rf dmg-stage
+
+          (
+            cd dist
+            shasum -a 256 "MarkdownReader-${VERSION}.zip" "MarkdownReader-${VERSION}.dmg" > checksums.txt
+          )
+          ls -lh dist
+
+      - name: Write release notes
+        run: |
+          cat > notes.md <<EOF
+          ## Install
+
+          1. Download \`MarkdownReader-${VERSION}.zip\` (or the \`.dmg\`) below and unpack it.
+          2. Drag **MarkdownReader.app** into Applications.
+          3. First launch: right-click the app and choose **Open** — the build is
+             ad-hoc signed, so macOS may otherwise ask for confirmation.
+
+          Universal binary (Apple silicon + Intel). Requires macOS 15 or later. The app is sandboxed
+          with read-only access to user-selected files.
+
+          ## Checksums
+
+          \`\`\`
+          $(cat dist/checksums.txt)
+          \`\`\`
+          EOF
+
+      - name: Publish GitHub release
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" \
+              "dist/MarkdownReader-${VERSION}.zip" \
+              "dist/MarkdownReader-${VERSION}.dmg" \
+              dist/checksums.txt --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "MarkdownReader ${VERSION}" \
+              --notes-file notes.md \
+              "dist/MarkdownReader-${VERSION}.zip" \
+              "dist/MarkdownReader-${VERSION}.dmg" \
+              dist/checksums.txt
+          fi

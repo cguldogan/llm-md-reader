@@ -1,0 +1,15 @@
+# Build products
+.build/
+dist/
+DerivedData/
+*.xcresult
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+
+# macOS
+.DS_Store
+
+# Local tooling
+.zcode/

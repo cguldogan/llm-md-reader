@@ -1,0 +1,77 @@
+name: MarkdownReader
+options:
+  bundleIdPrefix: com.cguldogan
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+
+packages:
+  MarkdownUI:
+    url: https://github.com/gonzalezreal/swift-markdown-ui
+    exactVersion: 2.4.1
+  Splash:
+    url: https://github.com/JohnSundell/Splash
+    from: 0.16.0
+
+targets:
+  MarkdownReader:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+    dependencies:
+      - package: MarkdownUI
+      - package: Splash
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        PRODUCT_BUNDLE_IDENTIFIER: com.cguldogan.MarkdownReader
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: 1
+        CODE_SIGN_IDENTITY: "-"
+    info:
+      path: Support/Info.plist
+      properties:
+        CFBundleDisplayName: Markdown Reader
+        NSPrincipalClass: NSApplication
+        NSHighResolutionCapable: true
+        LSApplicationCategoryType: public.app-category.productivity
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Markdown Document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - net.daringfireball.markdown
+            CFBundleTypeExtensions: [md, markdown, mdown, mkd, mdwn]
+    entitlements:
+      path: Support/MarkdownReader.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.files.user-selected.read-only: true
+        com.apple.security.network.client: true
+
+  MarkdownReaderTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    dependencies:
+      - target: MarkdownReader
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/MarkdownReader.app/Contents/MacOS/MarkdownReader
+        BUNDLE_LOADER: $(TEST_HOST)
+
+schemes:
+  MarkdownReader:
+    build:
+      targets:
+        MarkdownReader: all
+        MarkdownReaderTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - MarkdownReaderTests
