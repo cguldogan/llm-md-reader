@@ -13,6 +13,7 @@
 		440341B4FB0C516537233C8D /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487C070D838C5FE498D8B15A /* ReaderView.swift */; };
 		61EB206A709B9CC1DCCF7234 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3329E1668BFA6C0C6B5400F /* ContentView.swift */; };
 		77692EA1DFB978047AFFE33F /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 48A856D69E7C291D5B261A4C /* MarkdownUI */; };
+		825FA3BD30F1F8AA7E97D376 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FA2B34C63EB5D872465DFCE0 /* Assets.xcassets */; };
 		93A2F5857F80CE32C96C95DD /* DocumentSplitterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EF5996598C691D28C05D6C /* DocumentSplitterTests.swift */; };
 		C6910C1C11FA33EB8D1466AB /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = D836CFA65A5FCB483882DD3C /* Splash */; };
 		CC219BE5B00B122F1E77F067 /* FileTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221653AA75D52CCEC9271C77 /* FileTreeView.swift */; };
@@ -40,6 +41,7 @@
 		A545BB7EF3A60DFE2C189D85 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		A88C47481721DDBA5D45771F /* MarkdownReader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MarkdownReader.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E3329E1668BFA6C0C6B5400F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FA2B34C63EB5D872465DFCE0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +82,7 @@
 		B7A3A5AB5566291F54B06148 = {
 			isa = PBXGroup;
 			children = (
+				FA2B34C63EB5D872465DFCE0 /* Assets.xcassets */,
 				0B821D41B119D8E5ED6F8A32 /* Sources */,
 				7AF8C53AA5CA59F6C2412300 /* Tests */,
 				C7C771814E0D02D64D37EF4A /* Products */,
@@ -121,6 +124,7 @@
 			buildConfigurationList = 5CBD90172D792DB0BB8C6FD7 /* Build configuration list for PBXNativeTarget "MarkdownReader" */;
 			buildPhases = (
 				13632000E791F9699F9C19A6 /* Sources */,
+				791F713709159593631C323A /* Resources */,
 				B46D5A56AF22A0752CBEAB0A /* Frameworks */,
 			);
 			buildRules = (
@@ -170,6 +174,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		791F713709159593631C323A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				825FA3BD30F1F8AA7E97D376 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		13632000E791F9699F9C19A6 /* Sources */ = {

@@ -19,6 +19,7 @@ targets:
     platform: macOS
     sources:
       - Sources
+      - Assets.xcassets
     dependencies:
       - package: MarkdownUI
       - package: Splash
